@@ -8,20 +8,20 @@ module "gke" {
   zones                  = ["us-central1-a"]
   network                = module.vpc.network_name
   subnetwork             = module.vpc.subnets_names[0]
-  ip_range_pods          = "${var.cluster_name}-ip_pods"
-  ip_range_services      = "${var.cluster_name}-services"
-  enable_private_endpoint    = true
+  ip_range_pods          = "ip-range-pods"	
+  ip_range_services      = "ip-range-services"	
+  enable_private_endpoint    = false
   enable_private_nodes       = true 
   master_ipv4_cidr_block     = "10.0.0.0/28" 
-  #depends_on             = [module.vpc]
+  depends_on             = [module.vpc.network_name]
   remove_default_node_pool =  true
   node_pools = [
     {
       name                      = "default-node-pool"
       machine_type              = "e2-medium"
       node_locations            = "us-central1-a"
-      min_count                 = 1
-      max_count                 = 2
+      min_count                 = 2
+      max_count                 = 3
       disk_size_gb              = 30
       preemptible               = true
     },

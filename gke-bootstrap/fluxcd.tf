@@ -69,6 +69,7 @@ resource "kubernetes_namespace" "flux_system" {
       metadata[0].labels,
     ]
   }
+  depends_on = [module.gke.name]
 }
 
 data "kubectl_file_documents" "install" {
