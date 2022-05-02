@@ -4,6 +4,7 @@ metadata:
   name: tomcat
   namespace: flux-system
 spec:
+  releaseName: tomcat
   targetNamespace: default
   interval: '30s'
   chart:
