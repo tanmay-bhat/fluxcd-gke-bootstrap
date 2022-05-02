@@ -1,0 +1,15 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: tomcat
+  namespace: flux-system
+spec:
+  #targetNamespace: default
+  interval: '30s'
+  chart:
+    spec:
+      chart: './Applicationset/charts/core-apps/tomcat'
+      sourceRef:
+        kind: GitRepository
+        name: core-apps
+        namespace: default
