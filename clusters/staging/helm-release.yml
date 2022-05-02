@@ -14,13 +14,3 @@ spec:
         namespace: flux-system
   values:
     replicaCount: 2
-
-
-
-  # chart:
-  #   git: git@github.com:tanmay-bhat/ArgoCD.git
-  #   path: Applicationset/charts/core-apps
-  #   ref: main
-
-
-
