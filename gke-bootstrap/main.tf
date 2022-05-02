@@ -23,7 +23,7 @@ terraform {
     }
     google = {
       source  = "hashicorp/google" 
-      version = "~> 4.19.0"
+      version = "4.19.0"
     }    
   }
 
@@ -33,23 +33,8 @@ provider "kind" {}
 
 provider "flux" {}
 
-provider "kubectl" {}
-
-provider "kubernetes" {
-  config_path = "~/.kube/config"
-}
-
-provider "github" {
-  owner = var.github_owner
-  token = var.github_token
-}
-
-#====================Flux===========================
-provider "flux" {}
-
 data "flux_install" "main" {
   target_path = var.target_path
-  depends_on  = [module.gke]
 }
 
 data "flux_sync" "main" {
@@ -57,6 +42,7 @@ data "flux_sync" "main" {
   url         = "ssh://git@github.com/${var.github_owner}/${var.repository_name}.git"
   branch      = var.branch
 }
+
 
 provider "kubernetes" {
   cluster_ca_certificate = module.gke_auth.cluster_ca_certificate
@@ -71,9 +57,11 @@ provider "kubectl" {
   load_config_file       = false
 }
 
+
+# Kubernetes
 resource "kubernetes_namespace" "flux_system" {
   metadata {
-    name = var.flux_namespace
+    name = "flux-system"
   }
 
   lifecycle {
@@ -134,16 +122,27 @@ resource "kubernetes_secret" "main" {
   }
 
   data = {
-    identity       = tls_private_key.main.private_key_pem
-    "identity.pub" = tls_private_key.main.public_key_pem
     known_hosts    = local.known_hosts
+    identity       = tls_private_key.github_deploy_key.private_key_pem
+    "identity.pub" = tls_private_key.github_deploy_key.public_key_openssh
   }
 }
 
+
+provider "github" {
+  owner = var.github_owner
+  token = var.github_token
+}
+
+#====================Flux===========================
+
+
 # [Github] For flux to fetch source
-resource "github_repository_deploy_key" "main" {
+resource "github_repository_deploy_key" "flux" {
   title      = "staging-cluster"
   repository = var.repository_name
-  key        = tls_private_key.main.public_key_openssh
+  key        = tls_private_key.github_deploy_key.public_key_openssh
   read_only  = true
 }
+
+
