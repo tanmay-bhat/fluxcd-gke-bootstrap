@@ -21,7 +21,7 @@ terraform {
       source  = "hashicorp/tls"
       version = "3.1.0"
     }
-    google {
+    google = {
       source  = "hashicorp/google" 
       version = "~> 4.19.0"
     }    
