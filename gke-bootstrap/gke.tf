@@ -1,51 +1,3 @@
-#GKE cluster
-module "gke" {
-  source                 = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  project_id             = var.project_id
-  name                   = "${var.cluster_name}-${var.env_name}"
-  regional               = true
-  region                 = var.region
-  zones                  = ["us-central1-a"]
-  network                = module.vpc.network_name
-  subnetwork             = module.vpc.subnets_names[0]
-  ip_range_pods          = "ip-range-pods"	
-  ip_range_services      = "ip-range-services"	
-  enable_private_endpoint    = false
-  enable_private_nodes       = true 
-  master_ipv4_cidr_block     = "10.0.0.0/28" 
-  depends_on             = [module.vpc.network_name]
-  remove_default_node_pool =  true
-  node_pools = [
-    {
-      name                      = "default-node-pool"
-      machine_type              = "e2-medium"
-      node_locations            = "us-central1-a"
-      min_count                 = 2
-      max_count                 = 3
-      disk_size_gb              = 30
-      preemptible               = true
-    },
-  ]
-  node_pools_oauth_scopes = {
-    all = []
-    default-node-pool = ["https://www.googleapis.com/auth/cloud-platform"]
-  }
-}
-
-#GKE Auth
-module "gke_auth" {
-  source = "terraform-google-modules/kubernetes-engine/google//modules/auth"
-  #depends_on   = [module.gke]
-  project_id   = var.project_id
-  location     = module.gke.location
-  cluster_name = module.gke.name
-}
-resource "local_file" "kubeconfig" {
-  content  = module.gke_auth.kubeconfig_raw
-  filename = "kubeconfig-${var.env_name}"
-}
-
-
 #VPC & Subnet for the GKE Cluster
 module "vpc" {
   source       = "terraform-google-modules/network/google"
@@ -62,14 +14,65 @@ module "vpc" {
   secondary_ranges = {
     "${var.env_name}-subnet" = [
       {
-        range_name    = "ip-range-pods" #var.ip_range_pods_name
+        range_name    = "${var.env_name}-ip-range-pods" 
         ip_cidr_range = "10.20.0.0/16"
       },
       {
-        range_name    = "ip-range-services" #var.ip_range_services_name
+        range_name    = "${var.env_name}-ip-range-services" 
         ip_cidr_range = "10.30.0.0/16"
       },
     ]
   }
 }
+
+
+#GKE cluster
+module "gke" {
+  source                 = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
+  project_id             = var.project_id
+  name                   = "${var.cluster_name}-${var.env_name}"
+  regional               = true
+  region                 = var.region
+  zones                  = ["us-central1-a"]
+  network                = module.vpc.network_name
+  subnetwork             = module.vpc.subnets_names[0]
+  ip_range_pods          = "${var.env_name}-ip-range-pods"	
+  ip_range_services      = "${var.env_name}-ip-range-services"	
+  enable_private_endpoint    = false
+  enable_private_nodes       = true 
+  master_ipv4_cidr_block     = "10.0.0.0/28" 
+  depends_on             = [module.vpc.network_name]
+  remove_default_node_pool =  true
+  node_pools = [
+    {
+      name                      = "${var.env_name}-node-pool"
+      machine_type              = "e2-medium"
+      node_locations            = "us-central1-a"
+      min_count                 = 2
+      max_count                 = 3
+      disk_size_gb              = 30
+      preemptible               = false
+    },
+  ]
+  node_pools_oauth_scopes = {
+    default-node-pool = [#"https://www.googleapis.com/auth/cloud-platform",
+    "https://www.googleapis.com/auth/devstorage.read_only"]
+  }
+}
+
+#GKE Auth
+module "gke_auth" {
+  source = "terraform-google-modules/kubernetes-engine/google//modules/auth"
+  depends_on   = [module.gke]
+  project_id   = var.project_id
+  location     = module.gke.location
+  cluster_name = module.gke.name
+}
+resource "local_file" "kubeconfig" {
+  content  = module.gke_auth.kubeconfig_raw
+  filename = "kubeconfig-${var.env_name}"
+}
+
+
+
 
