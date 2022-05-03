@@ -9,4 +9,4 @@ spec:
     spec:
       version: ">=1.0.0"
   values:
-    replicaCount: 3
+    replicas: 3
