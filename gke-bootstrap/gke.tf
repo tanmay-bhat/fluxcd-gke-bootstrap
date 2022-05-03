@@ -3,7 +3,7 @@ module "gke" {
   source                 = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
   project_id             = var.project_id
   name                   = "${var.cluster_name}-${var.env_name}"
-  regional               = true
+  regional               = false
   region                 = var.region
   zones                  = ["us-central1-a"]
   network                = module.vpc.network_name
@@ -20,16 +20,12 @@ module "gke" {
       name                      = "${var.cluster_name}-${var.env_name}-primary-nodepool"
       machine_type              = "e2-medium"
       node_locations            = "us-central1-a"
-      min_count                 = 2
-      max_count                 = 3
-      disk_size_gb              = 30
+      min_count                 = var.minnode
+      max_count                 = var.maxnode
+      disk_size_gb              = var.disksize
       preemptible               = false
     },
   ]
-  node_pools_oauth_scopes = {
-    all = []  
-    "${var.cluster_name}-${var.env_name}-primary-nodepool" = ["https://www.googleapis.com/auth/devstorage.read_only"]
-  }
 }
 
 #GKE Auth
