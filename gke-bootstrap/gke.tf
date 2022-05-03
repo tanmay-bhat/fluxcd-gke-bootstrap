@@ -10,7 +10,7 @@ module "gke" {
   subnetwork             = module.vpc.subnets_names[0]
   ip_range_pods          = "${var.cluster_name}-${var.env_name}-ip-range-pods"	
   ip_range_services      = "${var.cluster_name}-${var.env_name}-ip-range-services"	
-  enable_private_endpoint    = true
+  enable_private_endpoint    = false
   enable_private_nodes       = true 
   master_ipv4_cidr_block     = "10.0.0.0/28" 
   depends_on             = [module.vpc.network_name]

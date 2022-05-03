@@ -91,7 +91,7 @@ locals {
 }
 
 resource "kubectl_manifest" "install" {
-  depends_on = [kubernetes_namespace.flux_system, module.gke.name]
+  depends_on = [kubernetes_namespace.flux_system]
   for_each   = { for v in local.install : lower(join("/", compact([v.data.apiVersion, v.data.kind, lookup(v.data.metadata, "namespace", ""), v.data.metadata.name]))) => v.content }
   yaml_body  = each.value
 }

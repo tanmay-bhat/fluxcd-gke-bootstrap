@@ -12,7 +12,7 @@ module "vpc" {
     },
   ]
   secondary_ranges = {
-    "${var.env_name}-subnet" = [
+    "${var.cluster_name}-${var.env_name}-subnet" = [
       {
         range_name    = "${var.cluster_name}-${var.env_name}-ip-range-pods" 
         ip_cidr_range = "10.20.0.0/16"
