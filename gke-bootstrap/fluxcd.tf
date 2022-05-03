@@ -1,10 +1,6 @@
 terraform {
   required_version = ">= 0.13"
   required_providers {
-    kind = {
-      source  = "tehcyx/kind"
-      version = "0.0.12"
-    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = ">= 2.0.2"
@@ -29,18 +25,19 @@ terraform {
 
 }
 
-provider "kind" {}
 
 provider "flux" {}
 
 data "flux_install" "main" {
   target_path = var.target_path
+  depends_on = [module.gke.name]
 }
 
 data "flux_sync" "main" {
   target_path = var.target_path
   url         = "ssh://git@github.com/${var.github_owner}/${var.repository_name}.git"
   branch      = var.branch
+  depends_on = [module.gke.name]  
 }
 
 
@@ -61,7 +58,7 @@ provider "kubectl" {
 # Kubernetes
 resource "kubernetes_namespace" "flux_system" {
   metadata {
-    name = "flux-system"
+    name = "flux-system"   
   }
 
   lifecycle {
@@ -94,7 +91,7 @@ locals {
 }
 
 resource "kubectl_manifest" "install" {
-  depends_on = [kubernetes_namespace.flux_system]
+  depends_on = [kubernetes_namespace.flux_system, module.gke.name]
   for_each   = { for v in local.install : lower(join("/", compact([v.data.apiVersion, v.data.kind, lookup(v.data.metadata, "namespace", ""), v.data.metadata.name]))) => v.content }
   yaml_body  = each.value
 }

@@ -1,31 +1,3 @@
-#VPC & Subnet for the GKE Cluster
-module "vpc" {
-  source       = "terraform-google-modules/network/google"
-  version      = "~> 5.0.0"
-  project_id   = var.project_id
-  network_name = "${var.env_name}-vpc"
-  subnets = [
-    {
-      subnet_name   = "${var.env_name}-subnet"
-      subnet_ip     = "10.10.0.0/16"
-      subnet_region = var.region
-    },
-  ]
-  secondary_ranges = {
-    "${var.env_name}-subnet" = [
-      {
-        range_name    = "${var.env_name}-ip-range-pods" 
-        ip_cidr_range = "10.20.0.0/16"
-      },
-      {
-        range_name    = "${var.env_name}-ip-range-services" 
-        ip_cidr_range = "10.30.0.0/16"
-      },
-    ]
-  }
-}
-
-
 #GKE cluster
 module "gke" {
   source                 = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
@@ -36,16 +8,16 @@ module "gke" {
   zones                  = ["us-central1-a"]
   network                = module.vpc.network_name
   subnetwork             = module.vpc.subnets_names[0]
-  ip_range_pods          = "${var.env_name}-ip-range-pods"	
-  ip_range_services      = "${var.env_name}-ip-range-services"	
-  enable_private_endpoint    = false
+  ip_range_pods          = "${var.cluster_name}-${var.env_name}-ip-range-pods"	
+  ip_range_services      = "${var.cluster_name}-${var.env_name}-ip-range-services"	
+  enable_private_endpoint    = true
   enable_private_nodes       = true 
   master_ipv4_cidr_block     = "10.0.0.0/28" 
   depends_on             = [module.vpc.network_name]
   remove_default_node_pool =  true
   node_pools = [
     {
-      name                      = "${var.env_name}-node-pool"
+      name                      = "${var.cluster_name}-${var.env_name}-primary-nodepool"
       machine_type              = "e2-medium"
       node_locations            = "us-central1-a"
       min_count                 = 2
@@ -55,8 +27,8 @@ module "gke" {
     },
   ]
   node_pools_oauth_scopes = {
-    default-node-pool = [#"https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/devstorage.read_only"]
+    all = []  
+    "${var.cluster_name}-${var.env_name}-primary-nodepool" = ["https://www.googleapis.com/auth/devstorage.read_only"]
   }
 }
 
@@ -72,7 +44,3 @@ resource "local_file" "kubeconfig" {
   content  = module.gke_auth.kubeconfig_raw
   filename = "kubeconfig-${var.env_name}"
 }
-
-
-
-
