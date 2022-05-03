@@ -1,26 +1,22 @@
-
-
+#=========Flux config=============================
 
 provider "flux" {}
 
 data "flux_install" "main" {
   target_path = var.target_path
-  depends_on = [module.gke.name]
 }
 
 data "flux_sync" "main" {
   target_path = var.target_path
   url         = "ssh://git@github.com/${var.github_owner}/${var.repository_name}.git"
   branch      = var.branch
-  depends_on = [module.gke.name]  
 }
 
-
+#========Kubernetes========================
 provider "kubernetes" {
   cluster_ca_certificate = module.gke_auth.cluster_ca_certificate
   host                   = module.gke_auth.host
   token                  = module.gke_auth.token
-  config_path            = "./kubeconfig-${var.cluster_name}-${var.env_name}"
 }
 
 provider "kubectl" {
@@ -30,8 +26,6 @@ provider "kubectl" {
   load_config_file       = false
 }
 
-
-# Kubernetes
 resource "kubernetes_namespace" "flux_system" {
   metadata {
     name = "flux-system"   
@@ -108,10 +102,9 @@ provider "github" {
   token = var.github_token
 }
 
-#====================Flux===========================
+#====================Github===========================
 
-
-# [Github] For flux to fetch source
+# Github deployment key for flux to fetch source
 resource "github_repository_deploy_key" "flux" {
   title      = "staging-cluster"
   repository = var.repository_name

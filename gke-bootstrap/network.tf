@@ -39,6 +39,7 @@ resource "google_compute_router" "flux-dev-router" {
   project = var.project_id
   region  = var.region
   network = module.vpc.network_name
+  depends_on = [module.vpc]
 }
 
 
@@ -50,6 +51,7 @@ module "cloud-nat" {
   name                               = format("%s-cloud-nat", var.cluster_name)
   nat_ips                            = ["${google_compute_address.nat.self_link}"]
   source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
+  depends_on                         = [google_compute_address.nat,google_compute_address.nat]
   subnetworks = [
     {
     name  =  module.vpc.subnets_names[0]
