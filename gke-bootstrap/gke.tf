@@ -15,6 +15,8 @@ module "gke" {
   master_ipv4_cidr_block     = "10.0.0.0/28" 
   depends_on             = [module.vpc.network_name]
   remove_default_node_pool =  true
+  logging_service        = "none"
+  monitoring_service     = "none"
   node_pools = [
     {
       name                      = "${var.cluster_name}-${var.env_name}-primary-nodepool"
