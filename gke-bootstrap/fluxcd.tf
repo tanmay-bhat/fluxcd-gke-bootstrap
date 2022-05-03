@@ -20,6 +20,7 @@ provider "kubernetes" {
   cluster_ca_certificate = module.gke_auth.cluster_ca_certificate
   host                   = module.gke_auth.host
   token                  = module.gke_auth.token
+  config_path            = "./kubeconfig-${var.cluster_name}-${var.env_name}"
 }
 
 provider "kubectl" {
