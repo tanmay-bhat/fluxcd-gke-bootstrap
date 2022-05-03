@@ -62,11 +62,11 @@ module "vpc" {
   secondary_ranges = {
     "${var.env_name}-subnet" = [
       {
-        range_name    = var.ip_range_pods_name
+        range_name    = "ip-range-pods" #var.ip_range_pods_name
         ip_cidr_range = "10.20.0.0/16"
       },
       {
-        range_name    = var.ip_range_services_name
+        range_name    = "ip-range-services" #var.ip_range_services_name
         ip_cidr_range = "10.30.0.0/16"
       },
     ]
